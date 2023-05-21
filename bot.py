@@ -3,6 +3,7 @@ import telebot
 import logging
 import re
 import gspread
+import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Enable logging
@@ -60,6 +61,7 @@ def add_record_to_sheet(message):
 
     number = match.group(1)
     text = match.group(2)
+    current_date = datetime.datetime.now().strftime("%d.%m.%Y")
 
     # get the column and find the top empty cell
     column_number = int(config.get('GOOGLE_SHEETS', 'column_number'))
@@ -69,6 +71,7 @@ def add_record_to_sheet(message):
     # update the worksheet with the number and text
     google_sheets_sheet.update_cell(top_empty_cell, column_number, text)
     google_sheets_sheet.update_cell(top_empty_cell, column_number + 1, number)
+    google_sheets_sheet.update_cell(top_empty_cell, column_number + 2, current_date)
 
     # reply to client
     bot.reply_to(message, f"Your message has been added to row {top_empty_cell} in the sheet!")
