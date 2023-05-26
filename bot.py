@@ -6,12 +6,19 @@ import gspread
 import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Enable logging
-logging.basicConfig(level=logging.DEBUG)
 
 # Read configuration values from file
 config = configparser.ConfigParser()
 config.read('config.cfg')
+
+# Retrieve log level from config file
+log_level = config.get('LOGGING', 'level', fallback='INFO')
+
+# Enable logging
+logging.basicConfig(level=log_level)
+
+# Create a logger instance
+logger = logging.getLogger(__name__)
 
 # Get Telegram bot token from config file
 telegram_bot_token = config.get('TELEGRAM', 'bot_token')
@@ -33,6 +40,8 @@ google_sheets_sheet = google_sheets_client.open(config.get('GOOGLE_SHEETS', 'she
 # Create Telegram bot object
 bot = telebot.TeleBot(telegram_bot_token)
 
+logger.info("Ready to work")
+
 # Authorized users
 AUTHORIZED_USERS = config.get('TELEGRAM', 'authorized_users').split(',')
 
@@ -49,6 +58,9 @@ def send_welcome(message):
 
 @bot.message_handler(func=lambda message: True)
 def add_record_to_sheet(message):
+    # Log the incoming message and user ID
+    logger.info(f"Incoming message from user {message.from_user.id}: {message.text}")
+
     if str(message.from_user.id) not in AUTHORIZED_USERS:
         bot.reply_to(message, "Sorry, you are not authorized to use this bot.")
         return
